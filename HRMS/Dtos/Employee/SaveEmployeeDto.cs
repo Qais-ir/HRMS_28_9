@@ -33,6 +33,7 @@ namespace HRMS.Dtos.Employee
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
-
+        [Range(0, 9999)]
+        public decimal? Salary { get; set; }
     }
 }
