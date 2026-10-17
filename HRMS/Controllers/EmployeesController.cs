@@ -105,8 +105,7 @@ namespace HRMS.Controllers
                 EndDate = employeeDto.EndDate,
                 Email = employeeDto.Email,
                 IsActive = employeeDto.IsActive,
-                PhoneNumber = employeeDto.PhoneNumber,
-                Salary = employeeDto.Salary
+                PhoneNumber = employeeDto.PhoneNumber
             };
 
             employees.Add(employee);
@@ -142,7 +141,7 @@ namespace HRMS.Controllers
             employee.EndDate = employeeDto.EndDate;
             employee.Email = employeeDto.Email;
             employee.IsActive = employeeDto.IsActive;
-            employee.Salary = employeeDto.Salary;
+            
             employee.PhoneNumber = employeeDto.PhoneNumber;
 
             return Ok();
