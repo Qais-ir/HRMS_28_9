@@ -1,0 +1,6 @@
+@HRMS_HostAddress = https://localhost:7203
+
+Get {{HRMS_HostAddress}}/api/Employees/GetById?id=10
+Accept: application/json
+
+###
