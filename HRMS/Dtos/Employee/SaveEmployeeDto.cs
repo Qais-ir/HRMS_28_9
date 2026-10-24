@@ -35,5 +35,8 @@ namespace HRMS.Dtos.Employee
 
         [Range(0, 9999)]
         public decimal? Salary { get; set; }
+
+        public long? DepartmentId { get; set; }
+        public long? ManagerId { get; set; }
     }
 }

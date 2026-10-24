@@ -9,13 +9,16 @@ namespace HRMS.Models
         public string LastName { get; set; }
         public string? Email { get; set; } // Optinal / Nullable (null)
         public string Position { get; set; }
-        [Required]
         public DateTime BirthDate { get; set; }
         public string PhoneNumber { get; set; } // 07, +962
         public bool IsActive { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public decimal? Salary { get; set; }
+
+        public long? DepartmentId { get; set; }
+        public long? ManagerId { get; set; }
+
 
 
     }
