@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HRMS.Models
 {
@@ -16,9 +17,13 @@ namespace HRMS.Models
         public DateTime? EndDate { get; set; }
         public decimal? Salary { get; set; }
 
+        [ForeignKey("Department")]
         public long? DepartmentId { get; set; }
-        public long? ManagerId { get; set; }
+        public Department? Department { get; set; } // Navigation Property
 
+        [ForeignKey("Manager")]
+        public long? ManagerId { get; set; }
+        public Employee? Manager { get; set; }
 
 
     }

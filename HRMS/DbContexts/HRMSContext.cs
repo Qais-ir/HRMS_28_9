@@ -10,7 +10,7 @@ namespace HRMS.DbContexts
         {
 
             // options
-            // sql provider : sql serveer, oracle, mysql....
+            // sql provider : sql server, oracle, mysql....
             // connection string
         }
 
