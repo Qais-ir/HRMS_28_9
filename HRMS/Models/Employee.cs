@@ -6,11 +6,20 @@ namespace HRMS.Models
     public class Employee // Model
     {
         public long Id { get; set; } // Required
+        [MaxLength(50)]
         public string FirstName { get; set; }
+
+        [MaxLength(50)]
         public string LastName { get; set; }
+
+        [MaxLength(50)]
         public string? Email { get; set; } // Optinal / Nullable (null)
+
+        [MaxLength(50)]
         public string Position { get; set; }
         public DateTime BirthDate { get; set; }
+
+        [MaxLength(50)]
         public string PhoneNumber { get; set; } // 07, +962
         public bool IsActive { get; set; }
         public DateTime StartDate { get; set; }
