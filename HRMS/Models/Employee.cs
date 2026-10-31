@@ -15,8 +15,9 @@ namespace HRMS.Models
         [MaxLength(50)]
         public string? Email { get; set; } // Optinal / Nullable (null)
 
-        [MaxLength(50)]
-        public string Position { get; set; }
+        //[MaxLength(50)]
+        //public string Position { get; set; } 
+
         public DateTime BirthDate { get; set; }
 
         [MaxLength(50)]
@@ -34,6 +35,9 @@ namespace HRMS.Models
         public long? ManagerId { get; set; }
         public Employee? Manager { get; set; }
 
+        [ForeignKey("Lookups")]
+        public long? PositionId { get; set; }
+        public Lookup? Lookups { get; set; }
 
     }
 }

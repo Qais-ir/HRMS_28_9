@@ -17,9 +17,11 @@ namespace HRMS.Dtos.Employee
         [EmailAddress]
         public string? Email { get; set; } // Optinal / Nullable (null)
 
-        [Required]
-        [StringLength(100, MinimumLength = 2)]
-        public string Position { get; set; }
+        //[Required]
+        //[StringLength(100, MinimumLength = 2)]
+        //public string Position { get; set; }
+
+        public long? PositionId { get; set; }
 
         [Required]
         public DateTime? BirthDate { get; set; }

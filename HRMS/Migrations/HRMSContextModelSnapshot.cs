@@ -44,7 +44,7 @@ namespace HRMS.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Departments", (string)null);
+                    b.ToTable("Departments");
                 });
 
             modelBuilder.Entity("HRMS.Models.Employee", b =>
@@ -89,10 +89,8 @@ namespace HRMS.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Position")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long?>("PositionId")
+                        .HasColumnType("bigint");
 
                     b.Property<decimal?>("Salary")
                         .HasColumnType("decimal(18,2)");
@@ -106,7 +104,90 @@ namespace HRMS.Migrations
 
                     b.HasIndex("ManagerId");
 
-                    b.ToTable("Employees", (string)null);
+                    b.HasIndex("PositionId");
+
+                    b.ToTable("Employees");
+                });
+
+            modelBuilder.Entity("HRMS.Models.Lookup", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("MajorCode")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinorCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Lookups");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            MajorCode = 0,
+                            MinorCode = 0,
+                            Name = "Employee Positions"
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            MajorCode = 0,
+                            MinorCode = 1,
+                            Name = "HR"
+                        },
+                        new
+                        {
+                            Id = 3L,
+                            MajorCode = 0,
+                            MinorCode = 2,
+                            Name = "Manager"
+                        },
+                        new
+                        {
+                            Id = 4L,
+                            MajorCode = 0,
+                            MinorCode = 3,
+                            Name = "Developer"
+                        },
+                        new
+                        {
+                            Id = 5L,
+                            MajorCode = 1,
+                            MinorCode = 0,
+                            Name = "Department Types"
+                        },
+                        new
+                        {
+                            Id = 6L,
+                            MajorCode = 1,
+                            MinorCode = 1,
+                            Name = "Finance"
+                        },
+                        new
+                        {
+                            Id = 7L,
+                            MajorCode = 1,
+                            MinorCode = 2,
+                            Name = "Adminstrative"
+                        },
+                        new
+                        {
+                            Id = 8L,
+                            MajorCode = 1,
+                            MinorCode = 3,
+                            Name = "Technical"
+                        });
                 });
 
             modelBuilder.Entity("HRMS.Models.Employee", b =>
@@ -119,7 +200,13 @@ namespace HRMS.Migrations
                         .WithMany()
                         .HasForeignKey("ManagerId");
 
+                    b.HasOne("HRMS.Models.Lookup", "Lookups")
+                        .WithMany()
+                        .HasForeignKey("PositionId");
+
                     b.Navigation("Department");
+
+                    b.Navigation("Lookups");
 
                     b.Navigation("Manager");
                 });
