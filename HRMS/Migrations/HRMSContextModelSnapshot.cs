@@ -190,6 +190,40 @@ namespace HRMS.Migrations
                         });
                 });
 
+            modelBuilder.Entity("HRMS.Models.User", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("HashedPassword")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            HashedPassword = "$2a$11$MhHLoubmXdikbYbxiZf.LuhXK4HBduXLNYafEOZNLslcwdMQ1gpyC",
+                            IsAdmin = true,
+                            Username = "Admin"
+                        });
+                });
+
             modelBuilder.Entity("HRMS.Models.Employee", b =>
                 {
                     b.HasOne("HRMS.Models.Department", "Department")
