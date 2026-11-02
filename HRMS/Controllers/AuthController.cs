@@ -1,7 +1,12 @@
 ﻿using HRMS.DbContexts;
 using HRMS.Dtos.Auth;
+using HRMS.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace HRMS.Controllers
 {
@@ -35,7 +40,46 @@ namespace HRMS.Controllers
 
 
             // Generate Token
-            return Ok();
+
+            var token = GenerateJwtToken(user);
+            return Ok(token);
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            // Claims
+            var claims = new List<Claim>();
+            claims.Add(new Claim(ClaimTypes.NameIdentifier , user.Id.ToString()));
+            claims.Add(new Claim(ClaimTypes.Name , user.Username));
+
+            // Role => Admin, Hr, Manager, Developer....
+            if (user.IsAdmin)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+            }
+            else
+            {
+                // Position Employee
+            }
+
+
+            // Signing Token => Secret Key
+            // "WHAFWEI#!@S!!112312WQEQW@RWQEQW432" => [65,46,36....]
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("WHAFWEI#!@S!!112312WQEQW@RWQEQW432"));//;
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+
+
+            var tokenSettings = new JwtSecurityToken(
+                claims: claims,
+                signingCredentials: creds,
+                expires: DateTime.Now.AddDays(1)
+                );
+
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.WriteToken(tokenSettings);
+            return token;
         }
     }
 }
