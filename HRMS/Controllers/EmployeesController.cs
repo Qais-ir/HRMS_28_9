@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace HRMS.Controllers
 {
@@ -32,6 +33,10 @@ namespace HRMS.Controllers
         {
             try
             {
+                // Extracted From Token
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
                 var data = from emp in _dbContext.Employees
                            from dep in _dbContext.Departments.Where(x => x.Id == emp.DepartmentId).DefaultIfEmpty() // -> Left Join
                            from man in _dbContext.Employees.Where(x => x.Id == emp.ManagerId).DefaultIfEmpty()
@@ -54,8 +59,14 @@ namespace HRMS.Controllers
                                DepartmentId = dep.Id,
                                DepartmentName = dep.Name,
                                ManagerId = man.Id,
-                               ManagerName = man.FirstName + " " + man.LastName
+                               ManagerName = man.FirstName + " " + man.LastName,
+                               UserId = emp.UserId
                            };
+
+                if (role?.ToUpper() != "ADMIN" && role?.ToUpper() != "HR")
+                {
+                    data = data.Where(x => x.UserId == long.Parse(userId));
+                }
 
                 return Ok(data);
             }
@@ -126,6 +137,7 @@ namespace HRMS.Controllers
         // Projection => Select
         // Lazy Loading ??
 
+        [Authorize(Roles = "HR,Admin")]
         [HttpPost]
         public IActionResult Create([FromBody] SaveEmployeeDto employeeDto)
         {
@@ -135,6 +147,23 @@ namespace HRMS.Controllers
                 {
                     return BadRequest(new Exception("End Date cannot be earlier than Start Date"));
                 }
+
+
+                var user = new User()
+                {
+                    Id = 0,
+                    Username = $"{employeeDto.FirstName}_{employeeDto.LastName}_HRMS", // Ahmad_Kreem_HRMS
+                    HashedPassword = BCrypt.Net.BCrypt.HashPassword($"{employeeDto.FirstName}@123"),
+                    IsAdmin = false
+                };
+
+                var existUser = _dbContext.Users.Any(x => x.Username.ToUpper() == user.Username.ToUpper());
+                if (existUser)
+                {
+                    return BadRequest(new Exception("Cannot Add Employee: Username Already Exist"));
+                }
+                _dbContext.Users.Add(user);
+
 
                 var employee = new Employee
                 {
@@ -150,7 +179,9 @@ namespace HRMS.Controllers
                     PhoneNumber = employeeDto.PhoneNumber,
                     Salary = employeeDto.Salary,
                     DepartmentId = employeeDto.DepartmentId,
-                    ManagerId = employeeDto.ManagerId
+                    ManagerId = employeeDto.ManagerId,
+                    //UserId = user.Id
+                    User = user
                 };
 
                 _dbContext.Employees.Add(employee);
@@ -165,7 +196,7 @@ namespace HRMS.Controllers
 
         }
 
-
+        [Authorize(Roles = "HR,Admin")]
         [HttpPut("{id:long}")]
         //[HttpPatch]
         public IActionResult Update(long id, SaveEmployeeDto employeeDto)
@@ -212,6 +243,7 @@ namespace HRMS.Controllers
            
         }
 
+        [Authorize(Roles = "HR,Admin")]
         [HttpDelete("{id:long}")]
         public IActionResult Delete(long id)
         {

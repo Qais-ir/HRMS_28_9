@@ -98,6 +98,9 @@ namespace HRMS.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<long?>("UserId")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DepartmentId");
@@ -105,6 +108,10 @@ namespace HRMS.Migrations
                     b.HasIndex("ManagerId");
 
                     b.HasIndex("PositionId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Employees");
                 });
@@ -212,6 +219,9 @@ namespace HRMS.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Username")
+                        .IsUnique();
+
                     b.ToTable("Users");
 
                     b.HasData(
@@ -238,11 +248,17 @@ namespace HRMS.Migrations
                         .WithMany()
                         .HasForeignKey("PositionId");
 
+                    b.HasOne("HRMS.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
                     b.Navigation("Department");
 
                     b.Navigation("Lookups");
 
                     b.Navigation("Manager");
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }
