@@ -1,4 +1,5 @@
-﻿using HRMS.Dtos.Departments;
+﻿using HRMS.DbContexts;
+using HRMS.Dtos.Departments;
 using HRMS.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,100 +10,154 @@ namespace HRMS.Controllers
     [ApiController]
     public class DepartmentsController : ControllerBase
     {
-        public static List<Department> departments = new List<Department>()
+
+        private readonly HRMSContext _dbContext;
+        public DepartmentsController(HRMSContext dbContext)
         {
-            new Department(){Id = 1, Name = "Human Resources", Description = "HR Department", FloorNumber = 1},
-            new Department(){Id = 2, Name = "Finance", Description = "Finance Department", FloorNumber = 2},
-            new Department(){Id = 3, Name = "Development", Description = "Development Department", FloorNumber = 1}
-        };
+            _dbContext = dbContext;
+        }
 
         [HttpGet]
         public IActionResult GetByCriteria([FromQuery] SearchDepartmentDto departmentDto) // name = Human Resources, floorNumber = 2
         {
 
-            var data = from dep in departments
-                       where (departmentDto.Name == null || dep.Name.ToUpper().Contains(departmentDto.Name.ToUpper())) &&
-                              (departmentDto.FloorNumber == null || dep.FloorNumber == departmentDto.FloorNumber)
-                       orderby dep.Id descending
-                       select new DepartmentDto
-                       {
-                           Id = dep.Id,
-                           Name = dep.Name,
-                           Description = dep.Description,
-                           FloorNumber = dep.FloorNumber
-                       };
+            try
+            {
+                var result = from department in _dbContext.Departments
+                             from type in _dbContext.Lookups.Where(x => x.Id == department.TypeId).DefaultIfEmpty()
+                             where (departmentDto.Name == null || department.Name.ToUpper().Contains(departmentDto.Name.ToUpper())) &&
+                             (departmentDto.FloorNumber == null || department.FloorNumber == departmentDto.FloorNumber)
+                             orderby department.Id descending
+                             select new DepartmentDto
+                             {
+                                 Id = department.Id,
+                                 Name = department.Name,
+                                 Description = department.Description,
+                                 FloorNumber = department.FloorNumber,
+                                 TypeId = department.TypeId,
+                                 TypeName = type.Name
+                             };
 
-            return Ok(data);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new Exception("An unexpected error occurred"));
+            }
         }
 
         [HttpGet("{id:long}")]
         public IActionResult GetById(long id)
         {
-            var department = departments.Select(x => new DepartmentDto
+            try
             {
-                Id = x.Id,
-                Name = x.Name,
-                Description = x.Description,
-                FloorNumber = x.FloorNumber
-            }).FirstOrDefault(x => x.Id == id);
+                var department = _dbContext.Departments.Select(x => new DepartmentDto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description = x.Description,
+                    FloorNumber = x.FloorNumber,
+                    TypeId = x.TypeId,
+                    TypeName = x.Type.Name
+                }).FirstOrDefault(x => x.Id == id);
 
-            if (department == null)
+                if (department == null)
+                {
+                    return NotFound("Department Not Found"); // 404
+                }
+                return Ok(department);
+            }
+            catch (Exception ex)
             {
-                return NotFound(new Exception("Department Not Found"));
+                return StatusCode(500, new Exception("An unexpected error occurred"));
             }
 
-            return Ok(department);
         }
 
         [HttpPost]
         public IActionResult Create([FromBody] SaveDepartmentDto departmentDto)
         {
-            var department = new Department
+            try
             {
-                Id = (departments.LastOrDefault()?.Id ?? 0) + 1,
-                Name = departmentDto.Name,
-                Description = departmentDto.Description,
-                FloorNumber = departmentDto.FloorNumber
-            };
+                var department = new Department
+                {
+                    Id = 0, // departments.LastOrDefault()?.Id == null ? 0 : departments.LastOrDefault()?.Id
+                    Name = departmentDto.Name,
+                    Description = departmentDto.Description,
+                    FloorNumber = departmentDto.FloorNumber,
+                    TypeId = departmentDto.TypeId
+                };
 
-            departments.Add(department);
+                _dbContext.Departments.Add(department);
+                _dbContext.SaveChanges();
 
-            return Ok(department.Id);
+                return Ok(department.Id);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new Exception("An unexpected error occurred"));
+            }
         }
 
         [HttpPut("{id:long}")]
         public IActionResult Update(long id, [FromBody] SaveDepartmentDto departmentDto)
         {
-            if (id != departmentDto.Id)
+            try
             {
-                return BadRequest(new Exception("Id Mismatch"));//400
-            }
+                if (id != departmentDto.Id)
+                {
+                    return BadRequest("Id Mismatch");//400
+                }
 
-            var department = departments.FirstOrDefault(x => x.Id == departmentDto.Id);
-            if (department == null)
+                var department = _dbContext.Departments.FirstOrDefault(x => x.Id == departmentDto.Id);
+
+
+                if (department == null)
+                {
+                    return NotFound("Department Does Not Exisit");
+                }
+
+                department.Name = departmentDto.Name;
+                department.Description = departmentDto.Description;
+                department.FloorNumber = departmentDto.FloorNumber;
+                department.TypeId = departmentDto.TypeId;
+
+                _dbContext.SaveChanges();
+
+                return Ok();
+            }
+            catch (Exception ex)
             {
-                return NotFound(new Exception("Department Not Found"));
+                return StatusCode(500, new Exception("An unexpected error occurred"));
             }
-
-            department.Name = departmentDto.Name;
-            department.Description = departmentDto.Description;
-            department.FloorNumber = departmentDto.FloorNumber;
-
-            return Ok();
         }
 
         [HttpDelete("{id:long}")]
         public IActionResult Delete(long id)
         {
-            var department = departments.FirstOrDefault(x => x.Id == id);
-
-            if (department == null)
+            try
             {
-                return NotFound(new Exception("Department Not Found"));
-            }
+                var department = _dbContext.Departments.FirstOrDefault(x => x.Id == id);
 
-            departments.Remove(department);
-            return Ok();
+                if (department == null)
+                {
+                    return NotFound("Department Does Not Exisit");
+                }
+
+                var isEmployee = _dbContext.Employees.Any(x => x.DepartmentId == id);
+                if (isEmployee)
+                {
+                    return BadRequest("Department with assigned employees can not be deleted");
+                }
+
+                _dbContext.Departments.Remove(department);
+                _dbContext.SaveChanges();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new Exception("An unexpected error occurred"));
+            }
         }
     }
 }

@@ -42,7 +42,12 @@ namespace HRMS.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<long?>("TypeId")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TypeId");
 
                     b.ToTable("Departments");
                 });
@@ -232,6 +237,15 @@ namespace HRMS.Migrations
                             IsAdmin = true,
                             Username = "Admin"
                         });
+                });
+
+            modelBuilder.Entity("HRMS.Models.Department", b =>
+                {
+                    b.HasOne("HRMS.Models.Lookup", "Type")
+                        .WithMany()
+                        .HasForeignKey("TypeId");
+
+                    b.Navigation("Type");
                 });
 
             modelBuilder.Entity("HRMS.Models.Employee", b =>
